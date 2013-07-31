@@ -1,0 +1,12 @@
+body, div, p,ul,ol,li{margin:0px;padding:0px;}
+li{list-style:none;}
+body{font-family: "Microsoft Yahei";background:#444}
+a{text-decoration:none;}
+
+
+.navbar{height:40px;margin-top:200px;background: #eee;box-shadow: 0px 1px 2px #000;}
+.navigation{width:600px;margin:auto; }
+.navigation a{display: inline-block;height:40px;line-height:40px;color:#333;padding:0px 20px;}
+.navigation a:hover{background: #555;color:#fff;}
+
+.pageCnt{padding:100px;font-size:24px;color:#fff;text-align:center;}
