@@ -6,26 +6,14 @@
  */
 var lofox = {};
 
-/*
- * render page
- */
-
 (function(ex){
-	var render = function(url){
-		$('.pageCnt').load(url+' .pageInner');
-	}
-	ex.render = render;
-})(lofox);
-
-//
-(function(ex){
-	var init = function(){
+	var HTML5 = function(base_url,call_back){
 	
 		$('a').on('click',function(){
 			var url = $(this).attr('href'),
 				title;
 						
-			lofox.render(url);
+			call_back(url);
 			
 			window.history.pushState({
 				url: url,
@@ -37,19 +25,35 @@ var lofox = {};
 			var state = e.state || {};
 			console.log(state);
 			if(state.url){
-				lofox.render(state.url);
+				call_back(state.url);
 			}
 			return false;
 		});
 	}
-	lofox.init = init ;
+	
+	ex.data = {
+		'first' : true,
+	};
+	ex.init = function(base_url,call_back){
+		if(ex.data['first']){
+			if(window.history.pushState){
+				console.log('This browser is support history API,using path url')
+				HTML5(base_url,call_back);
+			}else{
+				
+				alert('This browser is not support history API,using hash url')
+			}
+			ex.data['first'] = false;
+		}else{
+			
+		}
+	} ;
 })(lofox);
 
+
+
 $(function(){
-	if(window.history.pushState){
-		console.log('support',new Date())
-		lofox.init();
-	}else{
-		console.log('not support',new Date())
-	}
+	lofox.init('/',function(url){
+		$('.pageCnt').load(url+' .pageInner');
+	});
 });
