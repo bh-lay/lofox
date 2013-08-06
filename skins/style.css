@@ -1,4 +1,4 @@
-body, div, p,ul,ol,li{margin:0px;padding:0px;}
+body,div, p,ul,ol,li,a{margin:0px;padding:0px;}
 li{list-style:none;}
 body{font-family: "Microsoft Yahei";background:#444}
 a{text-decoration:none;}

@@ -6,54 +6,69 @@
  */
 var lofox = {};
 
-(function(ex){
+(function(exports){
 	var HTML5 = function(base_url,call_back){
-	
-		$('a').on('click',function(){
-			var url = $(this).attr('href'),
-				title;
-						
-			call_back(url);
-			
-			window.history.pushState({
-				url: url,
-			},'test',url);
-			return false
-		});
 		window.addEventListener('popstate',function(e){
-			console.log(e);
+			//console.log(e);
 			var state = e.state || {};
-			console.log(state);
+			//console.log(state);
 			if(state.url){
 				call_back(state.url);
 			}
 			return false;
 		});
+		
+		exports.push = function(url){
+			call_back(url);
+			window.history.pushState({
+				url: url,
+			},'test',url);
+		}
 	}
 	
-	ex.data = {
-		'first' : true,
-	};
-	ex.init = function(base_url,call_back){
-		if(ex.data['first']){
-			if(window.history.pushState){
-				console.log('This browser is support history API,using path url')
-				HTML5(base_url,call_back);
-			}else{
-				
-				alert('This browser is not support history API,using hash url')
+	var HASH = function(base_url,call_back){
+		var hash = window.location.hash;
+		
+		setInterval(function(){
+			var new_hash = window.location.hash;
+			if(new_hash != hash){
+				hash = new_hash;
+				call_back(new_hash);
 			}
-			ex.data['first'] = false;
-		}else{
-			
+		},30);
+		
+		exports.push = function(url){
+			call_back(url);
+			window.location.hash = url;
 		}
-	} ;
+	}
+	
+	exports.init = function(base_url,call_back){
+		
+		if(window.history&&window.history.pushState){
+			console.log('This browser is support history API,using path url now !');
+			HTML5(base_url,call_back);
+		}else{
+			alert('This browser is not support history API,using hash url now !');
+			HASH(base_url,call_back);
+		}
+		//reset init function
+		exports.init = function(){
+			console.log('you should init lofox only once !');
+		}
+	};
 })(lofox);
 
 
 
 $(function(){
-	lofox.init('/',function(url){
+	lofox.init('/lofox',function(url){
 		$('.pageCnt').load(url+' .pageInner');
+	});
+	
+	$('a').on('click',function(){
+		var url = $(this).attr('href');
+		lofox.push(url);
+		return false
 	});
 });
