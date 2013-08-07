@@ -17,28 +17,26 @@ var lofox = {};
 			}
 			return false;
 		});
-		
 		exports.push = function(url){
 			call_back(url);
 			window.history.pushState({
-				url: url,
+				url: url
 			},'test',url);
 		}
-	}
-	
+	};	
 	var HASH = function(base_url,call_back){
 		var hash = window.location.hash;
 		
 		setInterval(function(){
-			var new_hash = window.location.hash;
+			var new_hash = window.location.hash||'#';
 			if(new_hash != hash){
 				hash = new_hash;
-				call_back(new_hash);
+				var url = hash.replace(/^#/,'');
+				call_back(url);
 			}
 		},30);
 		
 		exports.push = function(url){
-			call_back(url);
 			window.location.hash = url;
 		}
 	}
