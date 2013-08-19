@@ -7,7 +7,7 @@
 var lofox = {};
 
 (function(exports){
-	var HTML5 = function(base_url,call_back){
+	var HTML5 = function(call_back){
 		window.addEventListener('popstate',function(e){
 			//console.log(e);
 			var state = e.state || {};
@@ -24,7 +24,7 @@ var lofox = {};
 			},'test',url);
 		}
 	};	
-	var HASH = function(base_url,call_back){
+	var HASH = function(call_back){
 		var hash = window.location.hash;
 		
 		setInterval(function(){
@@ -41,14 +41,14 @@ var lofox = {};
 		}
 	}
 	
-	exports.init = function(base_url,call_back){
+	exports.start = function(call_back){
 		
 		if(window.history&&window.history.pushState){
 			console.log('This browser is support history API,using path url now !');
-			HTML5(base_url,call_back);
+			HTML5(call_back);
 		}else{
 			alert('This browser is not support history API,using hash url now !');
-			HASH(base_url,call_back);
+			HASH(call_back);
 		}
 		//reset init function
 		exports.init = function(){
@@ -60,7 +60,7 @@ var lofox = {};
 
 
 $(function(){
-	lofox.init('/lofox',function(url){
+	lofox.start(function(url){
 		$('.pageCnt').load(url+' .pageInner');
 	});
 	
