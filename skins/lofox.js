@@ -63,7 +63,6 @@ $(function(){
 	lofox.start(function(url){
 		$('.pageCnt').load(url+' .pageInner');
 	});
-	
 	$('a').on('click',function(){
 		var url = $(this).attr('href');
 		lofox.push(url);
