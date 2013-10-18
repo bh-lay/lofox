@@ -4,35 +4,40 @@
  *  
  * lofox mean : location fox
  */
-var lofox = {};
+var lofox = function(callback){
+	lofox.start(callback)
+};
 
 (function(exports){
-	var HTML5 = function(call_back){
+	var HTML5 = function(callback){
+		console.log('lofox:','support history API !');
+		
 		window.addEventListener('popstate',function(e){
 			//console.log(e);
 			var state = e.state || {};
 			//console.log(state);
 			if(state.url){
-				call_back(state.url);
+				callback(state.url);
 			}
 			return false;
 		});
 		exports.push = function(url){
-			call_back(url);
+			callback(url);
 			window.history.pushState({
 				url: url
 			},'test',url);
 		}
 	};	
-	var HASH = function(call_back){
-		var hash = window.location.hash;
+	var HASH = function(callback){
+		console.log('lofox:','using hash url !');
 		
+		var hash = window.location.hash;
 		setInterval(function(){
 			var new_hash = window.location.hash||'#';
 			if(new_hash != hash){
 				hash = new_hash;
 				var url = hash.replace(/^#/,'');
-				call_back(url);
+				callback(url);
 			}
 		},30);
 		
@@ -41,24 +46,18 @@ var lofox = {};
 		}
 	}
 	
-	exports.start = function(call_back){
-		
+	exports.start = function(callback){
+		console.log('lofox:','i\'m start !');
 		if(window.history&&window.history.pushState){
-			console.log('This browser is support history API,using path url now !');
-			HTML5(call_back);
+			HTML5(callback);
 		}else{
-			alert('This browser is not support history API,using hash url now !');
-			HASH(call_back);
-		}
-		//reset init function
-		exports.init = function(){
-			console.log('you should init lofox only once !');
+			HASH(callback);
 		}
 	};
 })(lofox);
 
-
-
+//demo
+/*
 $(function(){
 	lofox.start(function(url){
 		$('.pageCnt').load(url+' .pageInner');
@@ -69,3 +68,4 @@ $(function(){
 		return false
 	});
 });
+*/
