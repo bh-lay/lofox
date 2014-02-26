@@ -1,12 +1,12 @@
 /**
  * @author bh-lay
- *  
+ * @github https://github.com/bh-lay/lofox
+ * @modified 2014-2-26 15:49
  *  location fox
  */
 window.util = window.util || {};
 
 (function(exports){
-	//格式化search
 	function searchParser(search){
 		var resultObj = {};
 		if(search && search.length > 1){
@@ -21,30 +21,7 @@ window.util = window.util || {};
 		}
 		return resultObj;
 	}
-	//格式化url
-	function pathParser(url){
-		var url = url || window.location.pathname+window.location.search+window.location.hash;
 
-		var urlSplit = url.length>0 ? url.split(/\?/) : ['',''];
-		
-		var urlStr = urlSplit[0].split('#')[0];
-		var searchStr = urlSplit[1];
-		//去除首尾的‘/’
-		urlStr = urlStr.replace(/^\/*|\/*$/g,'');
-		var pathData = urlStr.split(/\//);
-		
-		if(pathData.length == 1 && pathData[0] == ''){
-			pathData = [];
-		}
-		
-		var searchData = searchParser(searchStr);
-		
-		return {
-			'pathnode' : pathData,
-			'search' : searchData
-		};
-	}
-	
 	var HTML5 = function(){
 		var this_fox = this;
 		
@@ -95,7 +72,10 @@ window.util = window.util || {};
 		var this_fox = this;
 		this.events = {};
 		this.push = null;
-		
+		this.map = {};
+		this._other = null;
+		//this is a function return [routerName,args]
+		this._router = null;
 		if(window.history&&window.history.pushState){
 			HTML5.call(this);
 		}else{
@@ -105,8 +85,34 @@ window.util = window.util || {};
 		setTimeout(function(){
 			this_fox.refresh();
 		},10);
+		//执行set方法设置的回调
+		this.on('change',function(pathData,searchData){
+			if(this._router){
+				var filterData = this._router(pathData,searchData);
+				if(!filterData){
+					return
+				}
+				var routerName = filterData[0];
+				var args = [];
+				if(typeof(filterData[1]) == 'object' && filterData[1].length){
+					args = filterData[1];
+				}
+				
+				if(this.map[routerName]){
+					this.map[routerName]['renderFn'].apply(window,args);
+				}else{
+					this._other && this._other(pathData,searchData);
+				}
+			}
+		});
 	}
 	LOFOX.prototype = {
+		'router' : function(callback){
+			this._router = callback;
+		},
+		'other' : function(callback){
+			this._other = other;
+		},
 		'on' : function ON(eventName,callback){
 			//事件堆无该事件，创建一个事件堆
 			if(!this.events[eventName]){
@@ -114,13 +120,32 @@ window.util = window.util || {};
 			}
 			this.events[eventName].push(callback);
 		},
-		'refresh' : function (url){
-			var urlData = pathParser(url);
-			EMIT.call(this,'change',[urlData['pathnode'],urlData['search']]);
+		'set' : function(routerName,title,callback){
+			var routerName = arguments[0];
+			var title = typeof(arguments[1]) == 'string' ? arguments[1] :null;
+			var callback = typeof(callback) =='function' ? callback :null;
+			this.map[routerName] = {
+				'title' : title,
+				'renderFn' : callback
+			};
 		},
-		'urlParse' : function(url){
-			var urlData = pathParser(url);
-			return urlData;
+		'refresh' : function (url){
+			var url = url || window.location.pathname+window.location.search+window.location.hash;
+			var urlSplit = url.length>0 ? url.split(/\?/) : ['',''];
+		
+			var urlStr = urlSplit[0].split('#')[0];
+			var searchStr = urlSplit[1];
+			//去除首尾的‘/’
+			urlStr = urlStr.replace(/^\/*|\/*$/g,'');
+			var pathData = urlStr.split(/\//);
+			
+			if(pathData.length == 1 && pathData[0] == ''){
+				pathData = [];
+			}
+//			console.log(pathData,2);
+			var searchData = searchParser(searchStr);
+		
+			EMIT.call(this,'change',[pathData,searchData]);
 		}
 	};
 	
