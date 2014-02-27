@@ -1,7 +1,7 @@
 /**
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
- * @modified 2014-2-26 17:55
+ * @modified 2014-2-27 14:09
  *  location fox
  */
 window.util = window.util || {};
@@ -67,7 +67,7 @@ window.util = window.util || {};
 		}else{
 			setInterval(function(){
 				var new_hash = window.location.hash || '#';
-		//		console.log('interval',new_hash);
+			//	console.log('interval',new_hash);
 				//hash发生变化
 				if(new_hash != private_oldHash){
 					private_oldHash = new_hash;
@@ -84,7 +84,7 @@ window.util = window.util || {};
 		
 				
 		//初始化处理hash
-		if(private_oldHash.length <= 2){
+		if(private_oldHash.length < 2){
 			private_oldHash = window.location.pathname;
 			window.location.hash = private_oldHash;
 		}
@@ -109,7 +109,6 @@ window.util = window.util || {};
 		this.events = {};
 		this.push = null;
 		this.map = {};
-		this._other = null;
 		//this is a function return [routerName,args]
 		this._router = null;
 		if(window.history&&window.history.pushState){
@@ -125,31 +124,30 @@ window.util = window.util || {};
 		},10);
 		//执行set方法设置的回调
 		this.on('change',function(pathData,searchData){
-			if(this._router){
-				var filterData = this._router(pathData,searchData);
-				if(!filterData){
-					return
-				}
-				var routerName = filterData[0];
-				var args = [];
-				if(typeof(filterData[1]) == 'object' && filterData[1].length){
-					args = filterData[1];
-				}
-				
-				if(this.map[routerName]){
-					this.map[routerName]['renderFn'].apply(window,args);
-				}else{
-					this._other && this._other(pathData,searchData);
-				}
+			if(!this._router){
+				return
+			}
+			var filterData = this._router(pathData,searchData);
+			if(!filterData){
+				return
+			}
+			var routerName = filterData[0];
+			var pageTitle = filterData[1];
+			//设置标题
+			this.title(pageTitle);
+			var args = [];
+			for(var i=2,total=filterData.length;i<total;i++){
+				args.push(filterData[i]);
+			}
+			
+			if(this.map[routerName]){
+				this.map[routerName]['renderFn'].apply(window,args);
 			}
 		});
 	}
 	LOFOX.prototype = {
 		'router' : function(callback){
 			this._router = callback;
-		},
-		'other' : function(callback){
-			this._other = other;
 		},
 		'on' : function ON(eventName,callback){
 			//事件堆无该事件，创建一个事件堆
@@ -158,14 +156,19 @@ window.util = window.util || {};
 			}
 			this.events[eventName].push(callback);
 		},
-		'set' : function(routerName,title,callback){
+		'set' : function(routerName,callback){
 			var routerName = arguments[0];
-			var title = typeof(arguments[1]) == 'string' ? arguments[1] :null;
 			var callback = typeof(callback) =='function' ? callback :null;
 			this.map[routerName] = {
-				'title' : title,
 				'renderFn' : callback
 			};
+		},
+		//设置页面标题
+		'title' : function(title){
+			var type = typeof(title);
+			if(type.match(/number|string/)){
+				document.title = title
+			}
 		},
 		'refresh' : function (url){
 			var urlString;
