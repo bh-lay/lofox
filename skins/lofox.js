@@ -205,7 +205,7 @@ window.util = window.util || {};
 })(window.util);
 
 //提供CommonJS规范的接口
-define && define(function(require,exports,module){
+window.define && define(function(require,exports,module){
 	//对外接口
 	return window.util.lofox;
 });
