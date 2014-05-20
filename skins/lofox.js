@@ -1,12 +1,30 @@
 /**
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
- * @modified 2014-3-7 14:09
+ * @modified 2014-5-20 18:54
  *  location fox
  */
 window.util = window.util || {};
 
 (function(exports){
+	/**
+	 * 格式化path 
+	 */
+	function pathParser(input){
+		//去除首尾的‘/’
+		input = input.replace(/^\/*|\/*$/g,'');
+		//分割路径
+		var output = input.split(/\//);
+		
+		if(output.length == 1 && output[0] == ''){
+			output = [];
+		}
+		
+		return output;
+	}
+	/**
+	 * 格式化search 
+	 */
 	function searchParser(search){
 		var resultObj = {};
 		if(search && search.length > 1){
@@ -21,8 +39,19 @@ window.util = window.util || {};
 		}
 		return resultObj;
 	}
-
-	var HTML5 = function(){
+	/**
+	 * 事件触发器 
+	 */
+	function EMIT(eventName,args){
+		//事件堆无该事件，结束运行
+		if(!this.events[eventName]){
+			return
+		}
+		for(var i=0,total=this.events[eventName].length;i<total;i++){
+			this.events[eventName][i].apply(this,args);
+		}
+	}
+	function HTML5(){
 		var this_fox = this;
 		
 		window.addEventListener('popstate',function(e){
@@ -40,10 +69,11 @@ window.util = window.util || {};
 			window.history.pushState({
 				url: url
 			},'test',url);
+			EMIT.call(this,'change');
 		}
-	};	
+	}
 
-	var HASH = function(){
+	function HASH(){
 		var this_fox = this;
 		
 		//由于hash的特殊性，通过此值来判断是否需要触发refresh方法
@@ -92,25 +122,73 @@ window.util = window.util || {};
 			private_need_refresh = false;
 			this.url = url;
 			window.location.hash = url;
+			EMIT.call(this,'change');
 		}
 	}
+	/**
+	 * 在maps匹配url并返回对应值
+	 * @param {Object} url
+	 * @param {Object} maps
+	 */
+	function findUrlInMaps(inputPath,maps){
 	
-	function EMIT(eventName,args){
-		//事件堆无该事件，结束运行
-		if(!this.events[eventName]){
-			return
+		//定义从url中取到的值
+		var matchValue = {};
+		//记录找到的maps项
+		var this_mapsItem = null;
+		
+		//遍历maps
+		for(var i in maps){
+			//获取maps当前项数组形式的url节点
+			var pathData = pathParser(i);
+			//比对输入url长度与maps当前节点长度是否一致
+			if(pathData.length != inputPath.length){
+				continue
+			}
+			
+			this_mapsItem = maps[i];
+			//遍历maps当前url节点
+			for(var s=0,total=pathData.length;s<total;s++){
+				//1.比对输入url与maps对应url是否一致
+				if(pathData[s] != inputPath[s]){
+					//2.检测当前节点是否为变量
+					var tryMatch = pathData[s].match(/{(.+)}/);
+					if(tryMatch){
+						var key = tryMatch[1];
+						matchValue[key] = inputPath[s];
+					}else{
+						//既不一致，又不是变量，丢弃此条maps记录
+						this_mapsItem = null;
+						matchValue = {};
+						break
+					}
+				}
+			}
+			//若已经匹配出结果，结束匹配
+			if(this_mapsItem){
+				break
+			}
 		}
-		for(var i=0,total=this.events[eventName].length;i<total;i++){
-			this.events[eventName][i].apply(this,args);
+		if(this_mapsItem){
+			return {
+				'mapsItem' : this_mapsItem,
+				'data' : matchValue
+			};
+		}else{
+			return false;
 		}
 	}
+	/**
+	 *  lofox构造器
+	 * 
+	 */
 	function LOFOX(){
 		var this_fox = this;
 		this.events = {};
 		this.push = null;
-		this.map = {};
-		//this is a function return [routerName,args]
-		this._router = null;
+		this._maps = {};
+		//未加入maps列表的url
+		this._rest = null;
 		if(window.history&&window.history.pushState){
 			this._use = 'html5';
 			HTML5.call(this);
@@ -122,32 +200,12 @@ window.util = window.util || {};
 		setTimeout(function(){
 			this_fox.refresh();
 		},10);
-		//执行set方法设置的回调
-		this.on('change',function(pathData,searchData){
-			if(!this._router){
-				return
-			}
-			var filterData = this._router(pathData,searchData);
-			if(!filterData){
-				return
-			}
-			var routerName = filterData[0];
-			var pageTitle = filterData[1];
-			//设置标题
-			this.title(pageTitle);
-			var args = [];
-			for(var i=2,total=filterData.length;i<total;i++){
-				args.push(filterData[i]);
-			}
-			
-			if(this.map[routerName]){
-				this.map[routerName]['renderFn'].apply(window,args);
-			}
-		});
 	}
 	LOFOX.prototype = {
-		'router' : function(callback){
-			this._router = callback;
+		'rest' : function(callback){
+			if(typeof(callback) =='function'){
+				this._rest = callback;
+			}
 		},
 		'on' : function ON(eventName,callback){
 			//事件堆无该事件，创建一个事件堆
@@ -159,7 +217,7 @@ window.util = window.util || {};
 		'set' : function(routerName,callback){
 			var routerName = arguments[0];
 			var callback = typeof(callback) =='function' ? callback :null;
-			this.map[routerName] = {
+			this._maps[routerName] = {
 				'renderFn' : callback
 			};
 		},
@@ -183,19 +241,24 @@ window.util = window.util || {};
 			}
 			
 			var urlSplit = urlString.length>0 ? urlString.split(/\?/) : ['',''];
-		
+			
 			var urlStr = urlSplit[0].split('#')[0];
 			var searchStr = urlSplit[1];
-			//去除首尾的‘/’
-			urlStr = urlStr.replace(/^\/*|\/*$/g,'');
-			var pathData = urlStr.split(/\//);
 			
-			if(pathData.length == 1 && pathData[0] == ''){
-				pathData = [];
-			}
-//			console.log(pathData,2);
+			var pathData = pathParser(urlStr);
 			var searchData = searchParser(searchStr);
-			EMIT.call(this,'change',[pathData,searchData]);
+			
+			var result = findUrlInMaps(pathData,this._maps);
+		
+			if(result){
+				var data = result.data;
+				//执行set方法设置的回调
+				result.mapsItem['renderFn'].call(this,data,pathData,searchData);
+				//设置标题
+				result.mapsItem['title'] && this.title(result.mapsItem['title']);
+			}else{
+				this._rest && this._rest.call(this,pathData,searchData);
+			}
 		}
 	};
 	
