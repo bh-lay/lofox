@@ -1,6 +1,7 @@
 /**
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
+ * @version 1.0
  * @modified 2014-5-20 18:54
  *  location fox
  */
