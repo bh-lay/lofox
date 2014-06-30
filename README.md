@@ -48,7 +48,12 @@ lofox.rest(function(){
 });
 
 
+//监听页面地址发生变化
+lofox.on('change',function(url){
+  //更新面包屑，或其他
+});
 
+//主动修改url并刷新
 $('body').on('click','a.singlePage',function(){
   var url = $(this).attr('href');
   //修改地址(不检测set记录)
