@@ -57,8 +57,8 @@ app.on('change',function(url){
 $('body').on('click','a.singlePage',function(){
   var url = $(this).attr('href');
   //修改地址(不检测set记录)
-  lofox.push(url)
+  app.push(url)
   //匹配set记录
-  lofox.refresh();
+  app.refresh();
 });
 ```
