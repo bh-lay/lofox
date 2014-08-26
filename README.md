@@ -9,30 +9,30 @@ lofox操作页面地址匹配及监控，不处理模加载及MVC部分，下面
 
 ```javascript
 //创建一个监管实例
-var lofox = new util.lofox();
+var app = new util.lofox();
 //监听地址
-lofox.set('/',function(){
+app.set('/',function(){
   this.title('小剧客栈_剧中人的个人空间');
   //do something
 });
-lofox.set('/blog',function(){
+app.set('/blog',function(){
   this.title('博文列表页');
   //do something
 });
 
-lofox.set('/blog/{id}',function(data){
+app.set('/blog/{id}',function(data){
   this.title('博文详情页');
   alert('id为：' + data.id);
   //do something
 });
 
-lofox.set('/blog/{id}',function(data){
+app.set('/blog/{id}',function(data){
   this.title('博文详情页');
   alert('id为：' + data.id);
   //do something
 });
 //发布相关
-lofox.set([
+app.set([
 	'/publish/',
 	'/publish/{type}',
 	'/publish/{type}/{id}'
@@ -43,13 +43,13 @@ lofox.set([
 });
 
 //未匹配到的url规则
-lofox.rest(function(){
+app.rest(function(){
 	//do something
 });
 
 
 //监听页面地址发生变化
-lofox.on('change',function(url){
+app.on('change',function(url){
   //更新面包屑，或其他
 });
 
