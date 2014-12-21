@@ -1,5 +1,5 @@
 #lofox是什么
-一个用于单页面路由管理的工具。
+一个用于单页面路由管理的工具。[demo](http://bh-lay.github.io/lofox/index.html)
 
 #demo
 目前lofox用于易班（学生互动社区）的[个人主页](http://www.yiban.cn/p/767294)，和剧中人的博客[小剧客栈](http://bh-lay.com)。
