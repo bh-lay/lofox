@@ -11,15 +11,15 @@ var lofox = new util.lofox();
 *路由监听
 */
 //首页
-lofox.set('/index.html',function(){
+lofox.set('index.html',function(){
     $content.html(index_tpl);
 });
 //简介
-lofox.set('/intro.html',function(){
+lofox.set('intro.html',function(){
     $content.html(intro_tpl);
 });
 //关于
-lofox.set('/about.html',function(){
+lofox.set('about.html',function(){
     $content.html(about_tpl);
 });
 
