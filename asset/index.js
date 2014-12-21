@@ -1,6 +1,7 @@
 var index_tpl = '大家好，我是首页';
 var intro_tpl = '简介';
 var about_tpl = '关于我';
+var rest_tpl = 'error';
 var $content = $('.content');
     
 
@@ -11,16 +12,21 @@ var lofox = new util.lofox();
 *路由监听
 */
 //首页
-lofox.set('index.html',function(){
+lofox.set('/lofox/index.html',function(){
     $content.html(index_tpl);
 });
 //简介
-lofox.set('intro.html',function(){
+lofox.set('/lofox/intro.html',function(){
     $content.html(intro_tpl);
 });
 //关于
-lofox.set('about.html',function(){
+lofox.set('/lofox/about.html',function(){
     $content.html(about_tpl);
+});
+
+//设置剩余未配置的页面
+lofox.rest(function(){
+    $content.html(rest_tpl);
 });
 
 /**
