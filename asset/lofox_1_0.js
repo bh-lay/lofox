@@ -2,8 +2,7 @@
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
  * @version 1.0
- * @modified 2014-6-27 23:14
- *  location fox
+ * @modified 2015-4-03 13:59
  */
 
 (function(global,doc,factoryFn){
