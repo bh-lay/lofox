@@ -2,7 +2,8 @@
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
  * @version 1.0
- * @modified 2015-4-03 13:59
+ * @modified 2015-04-03 16:04
+ *  location fox
  */
 
 (function(global,doc,factoryFn){
@@ -192,14 +193,15 @@
 	 *  lofox构造器
 	 * 
 	 */
-	function LOFOX(){
-		var this_fox = this;
+	function LOFOX(param){
+		var this_fox = this,
+			param = param || {};
 		this.events = {};
 		this.push = null;
 		this._maps = {};
 		//未加入maps列表的url
 		this._rest = null;
-		if(window.history&&window.history.pushState){
+		if(param.use != 'hash' && window.history&&window.history.pushState){
 			this._use = 'html5';
 			HTML5.call(this);
 		}else{
@@ -272,6 +274,8 @@
 			
 			var result = findUrlInMaps(pathData,this._maps);
 			
+            //触发视图刷新事件
+			EMIT.call(this,'beforeRefresh',[pathData,searchData]);
 			if(result){
 				var data = result.data;
 				//执行set方法设置的回调
@@ -281,10 +285,12 @@
 			}else{
 				this._rest && this._rest.call(this,pathData,searchData);
 			}
+            //触发视图刷新事件
+			EMIT.call(this,'refresh',[pathData,searchData]);
 		}
 	};
 	
-	return function(){
-		return new LOFOX()
+	return function(param){
+		return new LOFOX(param)
 	};
 });
