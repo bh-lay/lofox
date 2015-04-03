@@ -2,7 +2,7 @@
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
  * @version 1.0
- * @modified 2015-01-09 03:51
+ * @modified 2015-04-03 16:04
  *  location fox
  */
 
@@ -214,19 +214,19 @@
 		},10);
 	}
 	LOFOX.prototype = {
-		'rest' : function(callback){
+		rest : function(callback){
 			if(typeof(callback) =='function'){
 				this._rest = callback;
 			}
 		},
-		'on' : function ON(eventName,callback){
+		on : function ON(eventName,callback){
 			//事件堆无该事件，创建一个事件堆
 			if(!this.events[eventName]){
 				this.events[eventName] = [];
 			}
 			this.events[eventName].push(callback);
 		},
-		'set' : function(url,callback){
+		set : function(url,callback){
 			var routerNames = [];
 			var total;
 			var type = Object.prototype.toString.call(url);
@@ -246,13 +246,13 @@
 			};
 		},
 		//设置页面标题
-		'title' : function(title){
+		title : function(title){
 			var type = typeof(title);
 			if(type.match(/number|string/)){
 				document.title = title
 			}
 		},
-		'refresh' : function (url){
+		refresh : function (url){
 			var urlString;
 			if(url){
 				urlString = url ;
