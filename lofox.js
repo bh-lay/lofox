@@ -2,7 +2,7 @@
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
  * @version 1.0
- * @modified 2015-06-25 00:14
+ * @modified 2015-06-25 00:30
  *  location fox
  */
 
@@ -17,6 +17,36 @@
     return factory;
   });
 })(window,document,function(){
+  
+  //主页面域名（包含协议）
+  var LOCATION = window.location,
+      //获取url中域名、协议正则 'http://xxx.xx/xxx','https://xxx.xx/xxx','//xxx.xx/xxx'
+      private_reg_url = /^(http(?:|s)\:)*\/\/([^\/]+)/;
+  
+  //是否为非空的字符串
+  function isNotEmptyString(input){
+    return (typeof input == 'string' && input.length) ? true : false;
+  }
+  /**
+   * URL与当前页面是否为同源
+   *   同协议、同域名、同端口
+   *   location.host 包含域名、端口
+   **/
+  function isSameOrigin(url){
+    if(!isNotEmptyString(url)){
+      return false;
+    }
+    var location_match = url.match(private_reg_url);
+    if(!location_match){
+      //没有域名信息，则为本域相对路径
+      return true;
+    }else if(location_match[2] == LOCATION.host && (!location_match[1] || location_match[1] == LOCATION.protocol)){
+      //完整检测URL
+      return true;
+    }else{
+      return false;
+    }
+  }
   /**
    * 格式化path 
    */
@@ -78,7 +108,6 @@
       window.history.pushState({
         url: url
       },'test',url);
-      EMIT.call(this,'change');
     }
   }
 
@@ -88,11 +117,11 @@
     //由于hash的特殊性，通过此值来判断是否需要触发refresh方法
     var private_need_refresh = true;
     //记录hash值
-    var private_oldHash = window.location.hash;
+    var private_oldHash = LOCATION.hash;
 
     if(typeof(window.onhashchange) != 'undefined'){
       window.onhashchange = function(e){
-        var new_hash = window.location.hash || '#';
+        var new_hash = LOCATION.hash || '#';
         private_oldHash = new_hash;
         var url = new_hash.replace(/^#/,'');
 
@@ -104,7 +133,7 @@
       }
     }else{
       setInterval(function(){
-        var new_hash = window.location.hash || '#';
+        var new_hash = LOCATION.hash || '#';
     //	console.log('interval',new_hash);
         //hash发生变化
         if(new_hash != private_oldHash){
@@ -123,14 +152,13 @@
 
     //初始化处理hash
     if(private_oldHash.length < 2){
-      private_oldHash = window.location.pathname;
-      window.location.hash = private_oldHash;
+      private_oldHash = LOCATION.pathname;
+      LOCATION.hash = private_oldHash;
     }
     this.push = function(url){
       private_need_refresh = false;
       this.url = url;
-      window.location.hash = url;
-      EMIT.call(this,'change');
+      LOCATION.hash = url;
     }
   }
   /**
@@ -138,7 +166,7 @@
    * @param {Object} url
    * @param {Object} maps
    */
-  function findUrlInMaps(inputPath,maps){
+  function findPathInMaps(inputPath,maps){
     //定义从url中取到的值
     var matchValue = {};
     //记录找到的maps项
@@ -248,14 +276,29 @@
         document.title = title
       }
     },
+    //检测路径是否在路由中
+    isInRouter: function(url){
+      if(!isNotEmptyString(url)){
+        return false;
+      }
+      //检测是否同域
+      if(!isSameOrigin(url)){
+        return false;
+      }
+      //
+      var urlSplit = url.replace(private_reg_url,'').split(/\?/),
+          pathData = pathParser(urlSplit[0].split('#')[0]),
+          result = findPathInMaps(pathData,this._maps);
+      return result ? true : false;
+    },
     refresh : function (url){
       var urlString;
       if(url){
         urlString = url ;
       }else if(this._use == 'html5'){
-        urlString = window.location.pathname+window.location.search+window.location.hash;
+        urlString = LOCATION.pathname+LOCATION.search+LOCATION.hash;
       }else if(this._use == 'hash'){
-        urlString = window.location.hash || '#';
+        urlString = LOCATION.hash || '#';
         //去除hash标记{#}
         urlString = urlString.replace(/^#/,'');
       }
@@ -263,7 +306,7 @@
       var urlSplit = urlString.length>0 ? urlString.split(/\?/) : ['',''],
           pathData = pathParser(urlSplit[0].split('#')[0]),
           searchData = searchParser(urlSplit[1]),
-          result = findUrlInMaps(pathData,this._maps);
+          result = findPathInMaps(pathData,this._maps);
 
       //触发视图刷新事件
       EMIT.call(this,'beforeRefresh',[pathData,searchData]);

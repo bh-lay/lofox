@@ -42,15 +42,20 @@ app.set([
 	
 });
 
-//未匹配到的url规则
+//未在路由中匹配到的url
 app.rest(function(){
 	//do something
 });
+//检测url是否在路由中
+app.isInRouter('/blog/xxx')
 
-
-//监听页面地址发生变化
-app.on('change',function(url){
-  //更新面包屑，或其他
+//视图刷新前
+lofox.on('beforeRefresh',function(){
+    //
+});
+//视图刷新事件
+lofox.on('refresh', function (pathData,search) {
+    //
 });
 
 //主动修改url并刷新
