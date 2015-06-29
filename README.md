@@ -26,11 +26,6 @@ app.set('/blog/{id}',function(data){
   //do something
 });
 
-app.set('/blog/{id}',function(data){
-  this.title('博文详情页');
-  alert('id为：' + data.id);
-  //do something
-});
 //发布相关
 app.set([
 	'/publish/',
@@ -46,8 +41,6 @@ app.set([
 app.rest(function(){
 	//do something
 });
-//检测url是否在路由中
-app.isInRouter('/blog/xxx')
 
 //视图刷新前
 lofox.on('beforeRefresh',function(){
@@ -58,12 +51,26 @@ lofox.on('refresh', function (pathData,search) {
     //
 });
 
+/**
+ * 检测链接是否为提供给js使用的地址
+ *   无地址、 javascript:: 、javascript:void(0)、#
+ **/
+function hrefForScript(href){
+    return (href.length == 0 || href.match(/^(javascript\s*\:|#)/)) ? true : false;
+}
 //主动修改url并刷新
 $('body').on('click','a.singlePage',function(){
   var url = $(this).attr('href');
-  //修改地址(不检测set记录)
-  app.push(url)
-  //匹配set记录
-  app.refresh();
+  //过滤掉给JS准备的链接
+  if(hrefForScript(url)){
+    return
+  }
+  //检测url是否在路由中
+  if(app.isInRouter(url)){
+    //修改地址(不检测set记录)
+    app.push(url)
+    //匹配set记录
+    app.refresh();
+  }
 });
 ```
