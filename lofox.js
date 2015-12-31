@@ -2,27 +2,26 @@
  * @author bh-lay
  * @github https://github.com/bh-lay/lofox
  * @version 1.0
- * @modified 2015-06-29 00:05
+ * @modified 2015-12-31 18:25
  *  location fox
  */
 
 (function(global,doc,factoryFn){
-  var factory = factoryFn();
-  global.util = global.util || {};
-  global.util.lofox = factory;
-
-  //提供CommonJS规范的接口
-  global.define && define(function(require,exports,module){
-    //对外接口
-    return factory;
-  });
+  if(global.define){
+    //提供CommonJS规范的接口
+    define(factoryFn);
+  }else{
+    //提供window.UI的接口
+    global.utils = global.utils || {};
+    global.utils.lofox = factoryFn();
+  }
 })(window,document,function(){
-  
+
   //主页面域名（包含协议）
   var LOCATION = window.location,
       //获取url中域名、协议正则 'http://xxx.xx/xxx','https://xxx.xx/xxx','//xxx.xx/xxx'
       private_reg_url = /^(http(?:|s)\:)*\/\/([^\/]+)/;
-  
+
   //是否为非空的字符串
   function isNotEmptyString(input){
     return (typeof input == 'string' && input.length) ? true : false;
@@ -48,7 +47,7 @@
     }
   }
   /**
-   * 格式化path 
+   * 格式化path
    */
   function pathParser(input){
     //去除首尾的‘/’
@@ -62,7 +61,7 @@
     return output;
   }
   /**
-   * 格式化search 
+   * 格式化search
    */
   function searchParser(search){
     var resultObj = {};
@@ -79,7 +78,7 @@
     return resultObj;
   }
   /**
-   * 事件触发器 
+   * 事件触发器
    */
   function EMIT(eventName,args){
     //事件堆无该事件，结束运行
@@ -94,9 +93,7 @@
     var this_fox = this;
 
     window.addEventListener('popstate',function(e){
-      //console.log(e);
       var state = e.state || {};
-      //console.log('from popstate event !',state);
       var url = state.url || null;
       //清除第一次不确定性的触发
       if(url){
@@ -134,7 +131,6 @@
     }else{
       setInterval(function(){
         var new_hash = LOCATION.hash || '#';
-    //	console.log('interval',new_hash);
         //hash发生变化
         if(new_hash != private_oldHash){
           private_oldHash = new_hash;
@@ -211,7 +207,7 @@
   }
   /**
    *  lofox构造器
-   * 
+   *
    */
   function LOFOX(param){
     //强制使用 new 方法
