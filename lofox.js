@@ -89,74 +89,7 @@
       this.events[eventName][i].apply(this,args);
     }
   }
-  function HTML5(){
-    var this_fox = this;
 
-    window.addEventListener('popstate',function(e){
-      var state = e.state || {};
-      var url = state.url || null;
-      //清除第一次不确定性的触发
-      if(url){
-        this_fox.refresh(url);
-      }
-      return false;
-    });
-    this.push = function(url){
-      window.history.pushState({
-        url: url
-      },'test',url);
-    }
-  }
-
-  function HASH(){
-    var this_fox = this;
-
-    //由于hash的特殊性，通过此值来判断是否需要触发refresh方法
-    var private_need_refresh = true;
-    //记录hash值
-    var private_oldHash = LOCATION.hash;
-
-    if(typeof(window.onhashchange) != 'undefined'){
-      window.onhashchange = function(e){
-        var new_hash = LOCATION.hash || '#';
-        private_oldHash = new_hash;
-        var url = new_hash.replace(/^#/,'');
-
-        if(private_need_refresh){
-          this_fox.refresh(url);
-        }else{
-          private_need_refresh = true;
-        }
-      }
-    }else{
-      setInterval(function(){
-        var new_hash = LOCATION.hash || '#';
-        //hash发生变化
-        if(new_hash != private_oldHash){
-          private_oldHash = new_hash;
-          var url = new_hash.replace(/^#/,'');
-
-          if(!private_need_refresh){
-            this_fox.refresh(url);
-          }else{
-            private_need_refresh = true;
-          }
-        }
-      },50);
-    }
-
-
-    //初始化处理hash
-    if(private_oldHash.length < 2){
-      private_oldHash = LOCATION.pathname;
-      LOCATION.hash = private_oldHash;
-    }
-    this.push = function(url){
-      private_need_refresh = false;
-      this.url = url;
-      LOCATION.hash = url;
-    }
-  }
   /**
    * 在maps匹配url并返回对应值
    * @param {Object} url
@@ -201,9 +134,9 @@
       }
     }
     return this_mapsItem ? {
-        mapsItem : this_mapsItem,
-        data : matchValue
-      } : false;
+      mapsItem : this_mapsItem,
+      data : matchValue
+    } : false;
   }
   /**
    *  lofox构造器
@@ -214,20 +147,26 @@
     if(!(this instanceof LOFOX)){
       return new LOFOX(param);
     }
+    if( !window.history || !window.history.pushState){
+      throw Error('not support pushState');
+    }
     var this_fox = this,
         param = param || {};
     this.events = {};
-    this.push = null;
     this._maps = {};
     //未加入maps列表的url
     this._rest = null;
-    if(param.use != 'hash' && window.history&&window.history.pushState){
-      this._use = 'html5';
-      HTML5.call(this);
-    }else{
-      this._use = 'hash';
-      HASH.call(this);
-    }
+
+    window.addEventListener('popstate',function(e){
+      var state = e.state || {};
+      var url = state.url || null;
+      //清除第一次不确定性的触发
+      if(url){
+        this_fox.refresh(url);
+      }
+      return false;
+    });
+
     //为异步接口
     setTimeout(function(){
       this_fox.refresh();
@@ -290,19 +229,14 @@
           result = findPathInMaps(pathData,this._maps);
       return result ? true : false;
     },
+    push: function(url){
+      window.history.pushState({
+        url: url
+      },'test',url);
+    },
     refresh : function (url){
-      var urlString;
-      if(url){
-        urlString = url ;
-      }else if(this._use == 'html5'){
-        urlString = LOCATION.pathname+LOCATION.search+LOCATION.hash;
-      }else if(this._use == 'hash'){
-        urlString = LOCATION.hash || '#';
-        //去除hash标记{#}
-        urlString = urlString.replace(/^#/,'');
-      }
-
-      var urlSplit = urlString.length>0 ? urlString.split(/\?/) : ['',''],
+      var urlString = url ? url : LOCATION.pathname + LOCATION.search + LOCATION.hash,
+          urlSplit = isNotEmptyString(urlString) ? urlString.split(/\?/) : ['',''],
           pathData = pathParser(urlSplit[0].split('#')[0]),
           searchData = searchParser(urlSplit[1]),
           result = findPathInMaps(pathData,this._maps);
